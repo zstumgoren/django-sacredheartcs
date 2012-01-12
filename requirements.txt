@@ -1,0 +1,8 @@
+django-extensions
+django-debug-toolbar
+fabric
+ipython
+south
+yolk
+
+-e git+http://github.com/django/django.git#egg=django
