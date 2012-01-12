@@ -20,10 +20,15 @@ INSTALLED_APPS += (
     'django.contrib.auth',
     'django.contrib.admin',
     'django.contrib.admindocs',
+
+    # 3rd party apps
     'debug_toolbar',
     'django_extensions',
-    'south'
+    'south',
     #'autocomplete',
+
+    # project apps
+    'apps.contacts',
 )
 
 DEBUG = True

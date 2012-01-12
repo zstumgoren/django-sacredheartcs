@@ -33,7 +33,7 @@ LANGUAGE_CODE = 'en-us'
 SITE_ID = 1
 USE_I18N = True
 USE_L10N = True
-ROOT_URLCONF = '%s.config.base.urls' % PROJECT_SLUG
+ROOT_URLCONF = 'config.base.urls'
 
 # Statics are collected out of an apps' /static/ 
 # folders via management command; Below settings control where 
