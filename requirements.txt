@@ -1,5 +1,6 @@
-django-extensions
+boto
 django-debug-toolbar
+django-extensions
 fabric
 ipython
 south
