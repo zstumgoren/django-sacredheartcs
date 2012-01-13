@@ -10,7 +10,7 @@ class Contact(models.Model):
     last_name = models.CharField(max_length=70, blank=True)
     job_title = models.CharField(max_length=200, blank=True)
     company_name = models.CharField(max_length=250, blank=True)
-    date_added = models.DateField(blank=True, null=True)
+    date_added = models.DateTimeField(blank=True, null=True)
     added_by = models.CharField(max_length=250, blank=True)
     work_phone = models.CharField(max_length=12, blank=True)
     home_phone = models.CharField(max_length=12, blank=True)
