@@ -1,6 +1,7 @@
 data/
 api_key.py
 *.sqlite
+*.sqlite-journal
 *.pyc
 *.swp
 *.vim
