@@ -1,54 +1,93 @@
 #!/usr/bin/python
 import csv
-import datetime
-import re
 import sys
 
+from dateutil.parser import parse
+from django.db.utils import IntegrityError
 from django.template.defaultfilters import slugify
 
 from contacts.models import Contact, ContactList, ListMembership
 from sacredheartcs.api_key import CONSTANT_CONTACTS_API_KEY
 
+
 def main():
     contact_data = list(csv.DictReader(open(sys.argv[1],'rb')))
-    # Check first row for List entries and add new lists to db
-    # list entries are prefixed with "List: ", e.g. "List: master" 
 
-    list_lkup = {}
-    list_fields = [field for field in contact_data[0] if field.startswith('List')]
-    for field in list_fields:
-        name = field.split(':')[1].strip()
-        contact_list = ContactList.objects.get_or_create(name=name)[0]
-        list_lkup[slugify(name)] = contact_list
-    
-    # regex for skipping fields
-    fields_to_skip = re.compile(r'(List:|Custom field)')
+    # Check first row for List entries and add new lists to db.
+    # List entries are prefixed with "List: ", e.g. "List: master"
+    list_lkup = get_list_lkup(contact_data[0])
+
     # Load Contact records
+    updated = 0
     for row in contact_data:
-        payload = {}
-        for field, value in row.items():
-            # Skip List and Custom fields"
-            if not re.match(fields_to_skip, field):
-                # convert "/" to '_or_' and white space to '_'
-                new_field = field.replace(' ','_').replace('/','_or_').lower()
-                if new_field == 'date_added':
-                    #TODO: format date '10/3/2011 8:52 AM PDT'
-                    value = datetime.datetime.strptime('%m/%d/%Y %H:%S %p %Z', value)
-                    print value
-                    break
-                payload[new_field]=value
-
         # Create contact
-        contact = Contact.objects.get(email_address=payload['email_address'])
-        if contact:
+        payload, list_memberships = process_row(row, list_lkup)
+        try:
+            contact = Contact.objects.get(email_address=payload['email_address'])
             contact.__dict__.update(payload)
-        else:
+        except Contact.DoesNotExist:
             contact = Contact(**payload)
         contact.save()
+        updated += 1
 
-        #TODO: Update contacts List entries
+        # Update Contact's List entries
+        lists_added_to = 0
+        for contact_list in list_memberships:
+            # If Contact/List combo already exists, it will violate
+            # a uniqueness constraint and raise an IntegrityError
+            try:
+                membership = ListMembership(contact=contact, contact_list=contact_list)
+                membership.save()
+                lists_added_to += 1
+            except IntegrityError:
+                pass
+        print "Created/Updated: %s with %s lists" % (contact, lists_added_to) 
 
-        
+    print "Created/Updated %s Contacts" % updated
+
+
+def get_list_lkup(contact_data_row):
+    list_lkup = {}
+
+    list_fields = [field for field in contact_data_row if field.startswith('List')]
+
+    for field in list_fields:
+        name = get_list_name(field)
+        contact_list = ContactList.objects.get_or_create(name=name)[0]
+        list_lkup[slugify(name)] = contact_list
+
+    return list_lkup
+
+
+def get_list_name(field):
+    return field.split(':')[1].strip()
+
+def process_row(row, list_lkup):
+    """
+    Returns kwargs dict for creating/updating a Contact record,
+    along with the Contact's list memberships. The List
+    memberships are a dict keyed on List name
+    """
+    payload = {}
+    list_memberships = []
+
+    for field, value in row.items():
+        if field.startswith('List:'):
+            if value == 'x':
+                field_slug = slugify(get_list_name(field))
+                list_memberships.append(list_lkup[field_slug])
+        elif field.startswith('Custom field'):
+            pass
+        else:
+            # convert "/" to '_or_' and white space to '_'
+            new_field = field.replace(' ','_').replace('/','_or_').lower()
+            if new_field == 'date_added':
+                #datetimes formatted as '10/3/2011 8:52 AM PDT'
+                value = parse(value)
+            payload[new_field]=value
+
+    return payload, list_memberships
+
 
 if __name__ == '__main__':
     main()
