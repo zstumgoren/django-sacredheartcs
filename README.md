@@ -1,6 +1,6 @@
 ## Overview
 This project is a contact management tool for 
-[Sacred Heart Community Services](http://www.sacredheartcs.org/), in San Jose.
+[Sacred Heart Community Service](http://www.sacredheartcs.org/), in San Jose.
 
 
 ## Constant Contacts API 
