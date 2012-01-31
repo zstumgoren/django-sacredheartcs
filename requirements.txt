@@ -8,3 +8,4 @@ south
 yolk
 
 -e git+http://github.com/django/django.git#egg=django
+-e svn+https://ctctwspylib.svn.sourceforge.net/svnroot/ctctwspylib#egg=ctctwspylib
