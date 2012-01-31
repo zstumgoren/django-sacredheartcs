@@ -1,4 +1,14 @@
 #!/usr/bin/python
+"""
+This script loads bulk exports of contacts from the 
+Constant Contacts service. It either creates new 
+records or updates pre-existing records in the db.
+
+USAGE:
+
+    python load_contacts <path/to/bulk_export.csv>
+
+"""
 import csv
 import sys
 
@@ -7,7 +17,7 @@ from django.db.utils import IntegrityError
 from django.template.defaultfilters import slugify
 
 from contacts.models import Contact, ContactList, ListMembership
-from sacredheartcs.api_key import CONSTANT_CONTACTS_API_KEY
+#from sacredheartcs.api_key import CONSTANT_CONTACTS_API_KEY
 
 
 def main():
@@ -20,13 +30,14 @@ def main():
     # Load Contact records
     updated = 0
     for row in contact_data:
-        # Create contact
+        # Create/Update contact
         payload, list_memberships = process_row(row, list_lkup)
         try:
             contact = Contact.objects.get(email_address=payload['email_address'])
             contact.__dict__.update(payload)
         except Contact.DoesNotExist:
             contact = Contact(**payload)
+        contact.status = 'active'
         contact.save()
         updated += 1
 
@@ -77,7 +88,9 @@ def process_row(row, list_lkup):
                 field_slug = slugify(get_list_name(field))
                 list_memberships.append(list_lkup[field_slug])
         elif field.startswith('Custom field'):
-            pass
+            # db field names formatted as "custom_field1"
+            custom_field = 'custom_field%s' % field.strip().split()[-1] 
+            payload[custom_field]=value
         else:
             # convert "/" to '_or_' and white space to '_'
             new_field = field.replace(' ','_').replace('/','_or_').lower()
