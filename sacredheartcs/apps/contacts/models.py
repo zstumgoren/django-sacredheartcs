@@ -50,6 +50,9 @@ class Contact(models.Model):
                                                help_text='Number of times this contact opened email in last 6 months. Updated daily.')
     purged = models.BooleanField(default=False, db_index=True)
     purge_candidate = models.BooleanField(default=False, db_index=True)
+    archived = models.BooleanField(default=False, db_index=True, help_text="True when records were deleted from Constant Contacts") 
+    needs_update = models.BooleanField(default=False, db_index=True,
+                                       help_text="True for contacts added during bulk import. A separate cronjob will flesh out contact's data")
 
     def __unicode__(self):
         return self.email_address
@@ -108,4 +111,20 @@ class EmailAction(models.Model):
 
     def __unicode__(self):
         return '%s - %s - %s' % (self.contact, self.action, self.open_date)
+
+
+class Activity(models.Model):
+    """
+    Represents a Constant Contacts Activity.
+    """
+    errors = models.IntegerField(blank=True, null=True)
+    file_name = models.CharField(max_length=250, blank=True)
+    cc_id = models.CharField(max_length=25, help_text="Constant Contacts Activity ID") # http://api.constantcontact.com/ws/customers/username/activities/a07e5khtzj2gy7x4xrm
+    insert_time = models.DateTimeField() #2012-02-04T00:42:25.906Z
+    run_finish_time = models.DateTimeField() #2012-02-04T00:44:35.413Z
+    run_start_time = models.DateTimeField() #'2012-02-04T00:43:19.488Z
+    status = models.CharField(max_length=30) # 'COMPLETE',
+    transaction_count= models.IntegerField() #15602
+    activity_type = models.CharField(max_length=200) #EXPORT_CONTACTS
+    updated = models.DateTimeField() #2012-02-04T00:44:35.413Z'
 
