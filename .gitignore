@@ -5,3 +5,4 @@ api_key.py
 *.pyc
 *.swp
 *.vim
+*~

@@ -1,59 +1,10 @@
-import csv
 import time
 
 from ctctwspylib import CTCTConnection
-from dateutil.parser import parse
 from django.core.management.base import BaseCommand
-from requests.auth import HTTPBasicAuth
-import requests 
 
 from sacredheartcs.api_key import API_KEY, USER, PASSWORD
-
-from contacts.models import Activity
-
-
-
-def load_csv_export(activity_id):
-    """
-    For a given Export activity, fetches
-    the download and attempts to load data
-    """
-    try:
-        activity = Activity.objects.get(cc_id=activity_id)
-    except Activity.DoesNotExist:
-        print "Could not find Activity with id: %s" % activity_id
-        activity = None
-
-    if activity:
-        # Get file name and fetch remote resource
-        cc_user = '%'.join((API_KEY, USER))
-        url = 'https://api.constantcontact.com' + activity.file_name #/ws/customers/<username>/activities/a07e5ke3u5dgy7a11on.csv
-        response = requests.get(url, auth=HTTPBasicAuth(cc_user, PASSWORD))
-        data = csv.reader(response.content)
-        #TODO: get unique emails from db and create sets for new and deleted emails
-
-
-def load_activity(activity):
-    """
-    Create an Activity instance from a CC activity response dict.
-    """
-
-    field_conversions = {'integer':int, 'datetime':parse}
-
-    # Initialize activity
-    activity_obj = Activity(cc_id=activity.pop('id'))
-
-    for field, value in activity.items():
-        # Dynamically determine field type and use it to coerce data to proper type
-        dj_field = activity_obj._meta.get_field_by_name(field)[0]
-        field_type = dj_field.get_internal_type().split('Field')[0].lower()
-        try:
-            func = field_conversions[field_type]
-            value = func(value)
-        except KeyError:
-            # Default to string
-            pass
-        setattr(activity_obj, field, value)
+from sacredheartcs.apps.contacts.libs.loaders import load_activity, sync_bulk_contacts, fetch_bulk_contacts_export
 
 
 class Command(BaseCommand):
@@ -73,6 +24,8 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **options):
+
+        ##### GENERATE A BULK EXPORT #####
         # Set up CC connection
         cnx = CTCTConnection(API_KEY, USER, PASSWORD)
 
@@ -89,23 +42,24 @@ class Command(BaseCommand):
         # Check the activity status
         activity = cnx.get_activity(activity_id)
 
-        # Load export into Activity model
+        # Load Bulk Export Activity
         load_activity(activity)
 
-        # RETRY FILE DOWNLOAD FOR UP TO 10 MINUTES
+
+        #### TRY IMPORTING BULK EXPORT ####
+        # retry download up to 5 times over 10 minuteS
         retries = 5
         outcome = 'failed'
-        while retries > 0:
+        while retries > 0 and outcome == 'failed':
             activity = cnx.get_activity(activity_id)
-            activity_status = activity['status']
-
+            activity_status = activity['status']           
             if activity_status == 'COMPLETE':
+                #TODO:emails = fetch_bulk_contacts_export(activity_id)
+                #TODO: sync_bulk_contacts(emails)
                 outcome = 'succeeded'
-                #load_csv_export(activity_id)
-                break
             else:
                 retries -= 1
                 time.sleep(120)
 
         #TODO: Log this
-        print 'data load %s for activity_id: %s' % (outcome, activity_id)
+        print 'Data load %s for activity_id: %s' % (outcome, activity_id)

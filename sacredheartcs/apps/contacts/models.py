@@ -118,13 +118,14 @@ class Activity(models.Model):
     Represents a Constant Contacts Activity.
     """
     errors = models.IntegerField(blank=True, null=True)
-    file_name = models.CharField(max_length=250, blank=True)
-    cc_id = models.CharField(max_length=25, help_text="Constant Contacts Activity ID") # http://api.constantcontact.com/ws/customers/username/activities/a07e5khtzj2gy7x4xrm
-    insert_time = models.DateTimeField() #2012-02-04T00:42:25.906Z
-    run_finish_time = models.DateTimeField() #2012-02-04T00:44:35.413Z
-    run_start_time = models.DateTimeField() #'2012-02-04T00:43:19.488Z
-    status = models.CharField(max_length=30) # 'COMPLETE',
-    transaction_count= models.IntegerField() #15602
-    activity_type = models.CharField(max_length=200) #EXPORT_CONTACTS
-    updated = models.DateTimeField() #2012-02-04T00:44:35.413Z'
+    file_name = models.CharField(max_length=250, blank=True, default='')
+    cc_id = models.CharField(max_length=25, help_text="Constant Contacts Activity ID")
+    insert_time = models.DateTimeField(help_text='UTC')
+    run_finish_time = models.DateTimeField(help_text='UTC')
+    run_start_time = models.DateTimeField(help_text='UTC')
+    status = models.CharField(max_length=30)
+    transaction_count= models.IntegerField(help_text='UTC')
+    activity_type = models.CharField(max_length=200)
+    updated = models.DateTimeField(help_text='UTC')
+    synced = models.BooleanField(default=False, help_text='True if activity synced to db. In case of bulk experts, True means data has been imported')
 

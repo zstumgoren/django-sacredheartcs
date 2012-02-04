@@ -3,6 +3,7 @@ django-debug-toolbar
 django-extensions
 fabric
 ipython
+mock
 python-dateutil==1.5
 south
 yolk
