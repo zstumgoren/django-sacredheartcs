@@ -6,3 +6,4 @@ api_key.py
 *.swp
 *.vim
 *~
+local_settings.py

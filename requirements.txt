@@ -4,9 +4,15 @@ django-extensions
 fabric
 ipython
 mock
+psycopg2
 python-dateutil==1.5
 south
 yolk
 
 -e git+http://github.com/django/django.git#egg=django
--e svn+https://ctctwspylib.svn.sourceforge.net/svnroot/ctctwspylib#egg=ctctwspylib
+
+# Original SourceForge Constant Contacts library
+#-e svn+https://ctctwspylib.svn.sourceforge.net/svnroot/ctctwspylib#egg=ctctwspylib
+
+# Forked clone of original Constant Contacts library
+-e git+git://github.com/zstumgoren/ctctwspylib.git#egg=ctctwspylib

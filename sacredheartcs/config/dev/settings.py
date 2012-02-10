@@ -58,3 +58,9 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 )
+
+try:
+    from config.dev.local_settings import *
+except ImportError:
+    pass
+
