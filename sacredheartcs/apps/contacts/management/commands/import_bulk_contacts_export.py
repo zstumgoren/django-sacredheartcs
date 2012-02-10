@@ -13,7 +13,7 @@ class Command(BaseCommand):
     This command imports bulk exports of contacts from CC.
 
     REQUIRED ARGS:
-      * path to file containing list of contacts who opened emails
+      * path to CSV containing list of contacts
     """
 
     def handle(self, *args, **options):

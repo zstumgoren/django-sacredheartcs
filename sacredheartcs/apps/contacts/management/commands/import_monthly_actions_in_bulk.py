@@ -46,9 +46,6 @@ class Command(BaseCommand):
                                   needs_update=True)
             new_contacts.append(contact_obj)
 
-            # Update db_contacts lookup with new instance
-            #db_contacts_lkup[email] = contact_obj
-
         Contact.objects.bulk_create(new_contacts)
         print "Bulk created %s new Contact records" % len(new_contacts)
 
